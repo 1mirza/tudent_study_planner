@@ -1,0 +1,31 @@
+name: student_study_planner
+description: برنامه ی زمانبدی درسی دانش اموزان
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  # نسخه برای حل مشکل هماهنگی به آخرین نسخه مورد نیاز ارتقا یافت
+  intl: ^0.20.2 
+  audioplayers: ^5.2.1
+  shared_preferences: ^2.2.2
+
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sounds/
+
