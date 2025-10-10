@@ -1,0 +1,77 @@
+# This workflow name is displayed in the GitHub Actions tab
+name: Build Signed Flutter Android App
+
+# This section specifies when the workflow should run
+on:
+  push:
+    branches:
+      - main # Only when code is pushed to the main branch
+
+# Defines the jobs to be performed
+jobs:
+  build:
+    # Use a virtual machine with Ubuntu to run the jobs
+    runs-on: ubuntu-latest
+
+    # The steps to be executed
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Java environment (JDK 17)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3: Set up Flutter environment
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # Step 4: Reconstruct the Keystore file from GitHub Secrets
+      # فایل Keystore که به صورت متن کد شده (Base64) در سکرت‌های گیت‌هاب ذخیره شده، در اینجا بازسازی می‌شود
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "✅ Keystore file decoded and created."
+
+      # Step 5: Create key.properties file from GitHub Secrets
+      # اطلاعات محرمانه مانند پسوردها در این فایل قرار می‌گیرند تا فلاتر برای امضای برنامه از آن‌ها استفاده کند
+      - name: Create key.properties file
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=app/upload-keystore.jks" >> android/key.properties
+          echo "✅ key.properties file created."
+
+      # Step 6: Get packages defined in pubspec.yaml
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # Step 7: Build the release APK file (signed)
+      - name: Build Flutter APK
+        run: flutter build apk --release
+
+      # Step 8: Build the release App Bundle file (signed)
+      - name: Build Flutter App Bundle
+        run: flutter build appbundle --release
+        
+      # Step 9: Upload the generated APK file as an Artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Step 10: Upload the generated App Bundle file as an Artifact
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-appbundle
+          path: build/app/outputs/bundle/release/app-release.aab
