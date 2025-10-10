@@ -34,20 +34,20 @@ jobs:
           cache: true
 
       # Step 4: Reconstruct the Keystore file from GitHub Secrets
-      # فایل Keystore که به صورت متن کد شده (Base64) در سکرت‌های گیت‌هاب ذخیره شده، در اینجا بازسازی می‌شود
+      # [FIX] The keystore is now created directly in the android/ directory for consistency.
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
           echo "✅ Keystore file decoded and created."
 
       # Step 5: Create key.properties file from GitHub Secrets
-      # اطلاعات محرمانه مانند پسوردها در این فایل قرار می‌گیرند تا فلاتر برای امضای برنامه از آن‌ها استفاده کند
       - name: Create key.properties file
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=app/upload-keystore.jks" >> android/key.properties
+          # [FIX] The storeFile path now correctly points to the keystore in the same directory.
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
           echo "✅ key.properties file created."
 
       # Step 6: Get packages defined in pubspec.yaml
@@ -75,3 +75,4 @@ jobs:
         with:
           name: release-appbundle
           path: build/app/outputs/bundle/release/app-release.aab
+
