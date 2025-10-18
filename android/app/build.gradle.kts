@@ -23,7 +23,6 @@ android {
     ndkVersion = findProperty("flutter.ndkVersion") as String
 
     compileOptions {
-        // [FIX]: Enabled core library desugaring using Kotlin DSL syntax.
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -39,8 +38,8 @@ android {
         targetSdk = (findProperty("flutter.targetSdkVersion") as String).toInt()
         versionCode = flutterVersionCode
         versionName = flutterVersionName
-        // [FIX]: Enabled multiDex using Kotlin DSL syntax.
-        isMultiDexEnabled = true
+        // [FIX]: Corrected the property name for multiDex in Kotlin DSL.
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -54,8 +53,8 @@ flutter {
     source = "../.."
 }
 
-// [FIX]: Added dependencies using Kotlin DSL syntax.
 dependencies {
     implementation(kotlin("stdlib-jdk7"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
+
