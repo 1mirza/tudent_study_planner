@@ -34,7 +34,6 @@ jobs:
           cache: true
 
       # Step 4: Reconstruct the Keystore file from GitHub Secrets
-      # [FIX] The keystore is now created directly in the android/ directory for consistency.
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
@@ -46,9 +45,13 @@ jobs:
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          # [FIX] The storeFile path now correctly points to the keystore in the same directory.
           echo "storeFile=upload-keystore.jks" >> android/key.properties
           echo "✅ key.properties file created."
+      
+      # [FIX]: Added a step to clean the project before getting dependencies.
+      # This clears the pub cache on the runner and resolves the build issue.
+      - name: Clean Flutter project
+        run: flutter clean
 
       # Step 6: Get packages defined in pubspec.yaml
       - name: Get Flutter dependencies
@@ -75,4 +78,3 @@ jobs:
         with:
           name: release-appbundle
           path: build/app/outputs/bundle/release/app-release.aab
-
