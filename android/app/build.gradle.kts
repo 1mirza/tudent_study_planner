@@ -19,8 +19,9 @@ val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "
 
 android {
     namespace = "com.example.pomodoro_mirza_app"
-    compileSdk = (findProperty("flutter.compileSdkVersion") as String).toInt()
-    ndkVersion = findProperty("flutter.ndkVersion") as String
+    // [FIX]: Reverted to the standard Flutter property access method, which is more robust.
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -34,11 +35,11 @@ android {
 
     defaultConfig {
         applicationId = "com.example.pomodoro_mirza_app"
-        minSdk = 21
-        targetSdk = (findProperty("flutter.targetSdkVersion") as String).toInt()
+        // [FIX]: Reverted to the standard Flutter property access method.
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode
         versionName = flutterVersionName
-        // [FIX]: Corrected the property name for multiDex in Kotlin DSL.
         multiDexEnabled = true
     }
 
