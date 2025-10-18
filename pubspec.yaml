@@ -29,6 +29,11 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^2.0.3
 
+# [FIX]: Forcefully override the vibration package version to prevent build errors.
+# This ensures that even transitive dependencies use the specified stable version.
+dependency_overrides:
+  vibration: 1.8.4
+
 flutter:
   uses-material-design: true
   assets:
