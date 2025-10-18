@@ -1,6 +1,6 @@
 name: pomopal
-description: A smart Pomodoro assistant for students to manage their time and studies effectively.
-publish_to: 'none' 
+description: A new Flutter project.
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -12,29 +12,22 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # Core & Utility Packages
+  cupertino_icons: ^1.0.8
   intl: ^0.20.0
   shared_preferences: ^2.2.3
   audioplayers: ^6.0.0
-  vibration: ^1.8.4
-
-  # UI & Charting Packages
   fl_chart: ^0.68.0
   table_calendar: ^3.1.2
-  persian_datetime_picker: ^2.6.0 # <--- پکیج جدید برای تقویم شمسی
-
-
-  # Date, Time & Notification Packages
   flutter_local_notifications: ^17.2.1
+  vibration: ^1.8.4
   timezone: ^0.9.4
   shamsi_date: ^1.0.2
-  
-  cupertino_icons: ^1.0.2
+  persian_datetime_picker: ^2.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.3
 
 flutter:
   uses-material-design: true
