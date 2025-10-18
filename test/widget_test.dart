@@ -8,36 +8,80 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:student_study_planner/main.dart';
+import 'package:pomopal/main.dart';
 
 void main() {
-  testWidgets('Student Pomodoro App Smoke Test', (WidgetTester tester) async {
+  // A basic smoke test to ensure the app loads without crashing.
+  testWidgets('App loads and shows Timer screen initially',
+      (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const PomodoroApp());
 
-    // Verify that all nav bar icons are present, including the new Contact icon.
-    expect(find.byIcon(Icons.calendar_today), findsOneWidget,
-        reason: 'Planner icon should be present');
-    expect(find.byIcon(Icons.bar_chart), findsOneWidget,
-        reason: 'Stats icon should be present');
-    expect(find.byIcon(Icons.timer), findsOneWidget,
-        reason: 'Timer icon should be present');
-    expect(find.byIcon(Icons.note), findsOneWidget,
-        reason: 'Notes icon should be present');
-    expect(find.byIcon(Icons.contact_mail), findsOneWidget,
-        reason: 'Contact icon should be present');
+    // Verify that the app title for the timer screen is present.
+    expect(find.text('تایمر پومودورو'), findsOneWidget);
 
-    // Verify the initial state of the timer screen.
+    // Verify that the initial time is '25:00'.
     expect(find.text('25:00'), findsOneWidget);
+
+    // Verify that the initial mode is "Focus Time".
     expect(find.text('زمان تمرکز'), findsOneWidget);
+  });
 
-    // Let's try tapping on the new "Contact Us" tab.
-    await tester.tap(find.byIcon(Icons.contact_mail));
-    await tester.pumpAndSettle(); // Wait for animations to finish.
+  // Test to ensure all bottom navigation bar items navigate to the correct screen.
+  testWidgets('Bottom navigation bar switches pages correctly',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const PomodoroApp());
 
-    // Verify that the contact screen is now visible by checking its title and content.
-    expect(find.text('تماس با ما'), findsOneWidget);
-    expect(find.textContaining('حمیدرضا علی میرزایی'), findsOneWidget);
-    expect(find.textContaining('alimirzaei.hr@gmail.com'), findsOneWidget);
+    // Tap on the 'Planner' icon and verify.
+    await tester.tap(find.byIcon(Icons.calendar_today_outlined));
+    await tester.pumpAndSettle(); // Wait for page transition
+    expect(find.text('برنامه‌ریز هفتگی'), findsOneWidget);
+
+    // Tap on the 'Goals' icon and verify.
+    await tester.tap(find.byIcon(Icons.flag_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('اهداف تحصیلی'), findsOneWidget);
+
+    // Tap on the 'Stats' icon and verify.
+    await tester.tap(find.byIcon(Icons.bar_chart_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('گزارش عملکرد'), findsOneWidget);
+
+    // Tap on the 'Settings' icon and verify.
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('تنظیمات و پروفایل'), findsOneWidget);
+
+    // Go back to the 'Timer' screen to complete the cycle.
+    await tester.tap(find.byIcon(Icons.timer));
+    await tester.pumpAndSettle();
+    expect(find.text('تایمر پومودورو'), findsOneWidget);
+  });
+
+  // Test to check the functionality of timer controls (play, pause).
+  testWidgets('Timer controls are present and functional',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const PomodoroApp());
+
+    // Ensure play, reset, and skip buttons are present.
+    expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
+    expect(find.byIcon(Icons.replay), findsOneWidget);
+    expect(find.byIcon(Icons.skip_next), findsOneWidget);
+
+    // Tap the play button.
+    await tester.tap(find.byIcon(Icons.play_circle_filled));
+    await tester.pump(); // Trigger a frame to update the UI.
+
+    // Verify the icon changes to pause.
+    expect(find.byIcon(Icons.pause_circle_filled), findsOneWidget);
+    expect(find.byIcon(Icons.play_circle_filled), findsNothing);
+
+    // Tap the pause button.
+    await tester.tap(find.byIcon(Icons.pause_circle_filled));
+    await tester.pump();
+
+    // Verify the icon changes back to play.
+    expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
+    expect(find.byIcon(Icons.pause_circle_filled), findsNothing);
   });
 }
