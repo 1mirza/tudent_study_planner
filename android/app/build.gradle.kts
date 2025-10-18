@@ -1,58 +1,50 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
+    localPropertiesFile.inputStream().use { stream ->
+        localProperties.load(stream)
     }
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
-}
-
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
-}
+val flutterVersionCode = localProperties.getProperty("flutter.versionCode")?.toInt() ?: 1
+val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
 
 android {
     namespace = "com.example.pomodoro_mirza_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = (findProperty("flutter.compileSdkVersion") as String).toInt()
+    ndkVersion = findProperty("flutter.ndkVersion") as String
 
     compileOptions {
-        // [FIX]: Added coreLibraryDesugaringEnabled and set compatibility to Java 8.
-        coreLibraryDesugaringEnabled true
+        // [FIX]: Enabled core library desugaring using Kotlin DSL syntax.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
         applicationId = "com.example.pomodoro_mirza_app"
-        minSdk = 21 // Ensure minSdk is at least 21
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutterVersionCode.toInteger()
+        minSdk = 21
+        targetSdk = (findProperty("flutter.targetSdkVersion") as String).toInt()
+        versionCode = flutterVersionCode
         versionName = flutterVersionName
-        // [FIX]: Added multiDexEnabled.
-        multiDexEnabled true
+        // [FIX]: Enabled multiDex using Kotlin DSL syntax.
+        isMultiDexEnabled = true
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -62,8 +54,8 @@ flutter {
     source = "../.."
 }
 
-// [FIX]: Added dependencies block with the desugaring library.
+// [FIX]: Added dependencies using Kotlin DSL syntax.
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    implementation(kotlin("stdlib-jdk7"))
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
