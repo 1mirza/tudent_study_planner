@@ -1,5 +1,5 @@
-name: pomopal
-description: A new Flutter project.
+name: pomopal_app
+description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -13,24 +13,22 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  intl: 0.20.2
+  intl: ^0.20.2
   shared_preferences: ^2.2.3
   audioplayers: ^6.0.0
   fl_chart: ^0.68.0
   table_calendar: ^3.1.2
   flutter_local_notifications: ^17.2.1
-  # [FIX]: Upgraded to the latest stable version compatible with modern Flutter builds.
-  vibration: ^1.9.0
   timezone: ^0.9.4
   shamsi_date: ^1.0.2
-  persian_datetime_picker: ^2.6.0
+  # [FIX]: Upgraded to the latest stable version compatible with modern Flutter.
+  persian_datetime_picker: ^3.2.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.3
-
-# The dependency_overrides section is no longer needed.
 
 flutter:
   uses-material-design: true

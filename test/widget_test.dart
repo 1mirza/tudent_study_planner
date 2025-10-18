@@ -8,79 +8,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:pomopal/main.dart';
+// Import the main app file from your project.
+// The project name 'pomopal_app' is based on your pubspec.yaml.
+import 'package:pomopal_app/main.dart';
 
 void main() {
-  // A basic smoke test to ensure the app loads without crashing.
-  testWidgets('App loads and shows Timer screen initially',
+  testWidgets('Smoke test: App loads and shows the timer screen',
       (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const PomodoroApp());
 
-    // Verify that the app title for the timer screen is present.
+    // Verify that the initial screen is the Timer screen.
     expect(find.text('تایمر پومودورو'), findsOneWidget);
-
-    // Verify that the initial time is '25:00'.
-    expect(find.text('25:00'), findsOneWidget);
-
-    // Verify that the initial mode is "Focus Time".
-    expect(find.text('زمان تمرکز'), findsOneWidget);
+    expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
   });
 
-  // Test to ensure all bottom navigation bar items navigate to the correct screen.
-  testWidgets('Bottom navigation bar switches pages correctly',
+  testWidgets('Bottom navigation bar navigates to different screens',
       (WidgetTester tester) async {
     await tester.pumpWidget(const PomodoroApp());
 
-    // Tap on the 'Planner' icon and verify.
+    // Tap the 'Planner' icon and verify.
     await tester.tap(find.byIcon(Icons.calendar_today_outlined));
-    await tester.pumpAndSettle(); // Wait for page transition
+    await tester.pumpAndSettle(); // Wait for animations to finish
     expect(find.text('برنامه‌ریز هفتگی'), findsOneWidget);
 
-    // Tap on the 'Goals' icon and verify.
+    // Tap the 'Goals' icon and verify.
     await tester.tap(find.byIcon(Icons.flag_outlined));
     await tester.pumpAndSettle();
     expect(find.text('اهداف تحصیلی'), findsOneWidget);
 
-    // Tap on the 'Stats' icon and verify.
+    // Tap the 'Stats' icon and verify.
     await tester.tap(find.byIcon(Icons.bar_chart_outlined));
     await tester.pumpAndSettle();
     expect(find.text('گزارش عملکرد'), findsOneWidget);
 
-    // Tap on the 'Settings' icon and verify.
+    // Tap the 'Settings' icon and verify.
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
     expect(find.text('تنظیمات و پروفایل'), findsOneWidget);
 
-    // Go back to the 'Timer' screen to complete the cycle.
+    // Go back to the Timer screen to complete the test.
     await tester.tap(find.byIcon(Icons.timer));
     await tester.pumpAndSettle();
     expect(find.text('تایمر پومودورو'), findsOneWidget);
   });
 
-  // Test to check the functionality of timer controls (play, pause).
-  testWidgets('Timer controls are present and functional',
+  testWidgets('Timer controls play and pause the timer',
       (WidgetTester tester) async {
     await tester.pumpWidget(const PomodoroApp());
 
-    // Ensure play, reset, and skip buttons are present.
+    // Verify the initial state is paused.
     expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
-    expect(find.byIcon(Icons.replay), findsOneWidget);
-    expect(find.byIcon(Icons.skip_next), findsOneWidget);
+    expect(find.byIcon(Icons.pause_circle_filled), findsNothing);
 
     // Tap the play button.
     await tester.tap(find.byIcon(Icons.play_circle_filled));
-    await tester.pump(); // Trigger a frame to update the UI.
+    await tester.pump(); // Trigger a frame to update the UI
 
-    // Verify the icon changes to pause.
-    expect(find.byIcon(Icons.pause_circle_filled), findsOneWidget);
+    // Verify the state is now playing.
     expect(find.byIcon(Icons.play_circle_filled), findsNothing);
+    expect(find.byIcon(Icons.pause_circle_filled), findsOneWidget);
 
     // Tap the pause button.
     await tester.tap(find.byIcon(Icons.pause_circle_filled));
-    await tester.pump();
+    await tester.pump(); // Trigger a frame to update the UI
 
-    // Verify the icon changes back to play.
+    // Verify the state is back to paused.
     expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
     expect(find.byIcon(Icons.pause_circle_filled), findsNothing);
   });

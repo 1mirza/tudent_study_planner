@@ -1,11 +1,7 @@
 /// PomoPal: A Smart Pomodoro Study Assistant
 ///
-/// Final version incorporating all requested features:
-/// - Shamsi calendar for heatmap and reminders.
-/// - Live Shamsi clock on main screens.
-/// - App renamed to "PomoPal" (پومویار).
-/// - Ambient sounds removed, end-of-session sound is now optional via settings.
-/// - All known bugs and errors have been addressed.
+/// Final version incorporating all requested features.
+/// The 'vibration' package has been removed to ensure build stability.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -18,10 +14,12 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:vibration/vibration.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:shamsi_date/shamsi_date.dart';
+import 'package:shamsi_date/shamsi_date.dart' as shamsi;
+// [FIX]: Hid 'isSameDay' from this import to resolve name collision with 'table_calendar'.
+import 'package:persian_datetime_picker/persian_datetime_picker.dart'
+    hide isSameDay;
 
 // Initialize local notifications plugin
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -159,10 +157,12 @@ class PomodoroApp extends StatelessWidget {
               fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.black),
         ),
       ),
-      localizationsDelegates: const [
+      // [FIX]: Removed 'const' because DefaultPersianLocalization.delegate is not a constant.
+      localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
+        DefaultPersianCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
         Locale('fa', ''), // Persian
@@ -467,7 +467,7 @@ class ShamsiClock extends StatefulWidget {
 
 class _ShamsiClockState extends State<ShamsiClock> {
   late Timer _timer;
-  late Jalali _now;
+  late shamsi.Jalali _now;
 
   @override
   void initState() {
@@ -478,7 +478,7 @@ class _ShamsiClockState extends State<ShamsiClock> {
   }
 
   void _updateTime() {
-    if (mounted) setState(() => _now = Jalali.now());
+    if (mounted) setState(() => _now = shamsi.Jalali.now());
   }
 
   @override
@@ -490,7 +490,6 @@ class _ShamsiClockState extends State<ShamsiClock> {
   @override
   Widget build(BuildContext context) {
     final formattedTime = DateFormat('HH:mm:ss').format(DateTime.now());
-    // [FIX]: Manually construct the date string using individual formatters.
     final formattedDate =
         '${_now.formatter.wN}، ${_now.formatter.d} ${_now.formatter.mN}';
     return Padding(
@@ -586,7 +585,7 @@ class _TimerScreenState extends State<TimerScreen> {
     if (_isActive) {
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds <= 0) {
-          _playSoundAndVibrate();
+          _playSound();
           _startNextMode();
         } else {
           setState(() => _remainingSeconds--);
@@ -614,13 +613,13 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
-  Future<void> _playSoundAndVibrate() async {
+  Future<void> _playSound() async {
     try {
-      if (await Vibration.hasVibrator() ?? false) Vibration.vibrate();
-      if (widget.isSoundEnabled)
+      if (widget.isSoundEnabled) {
         await _audioPlayer.play(AssetSource('sounds/bell.mp3'));
+      }
     } catch (e) {
-      print("Error playing sound/vibrating: $e");
+      print("Error playing sound: $e");
     }
   }
 
@@ -766,8 +765,8 @@ class PlannerScreen extends StatelessWidget {
                       label: Text(selectedReminderTime == null
                           ? 'افزودن یادآور'
                           : () {
-                              final jalali =
-                                  Jalali.fromDateTime(selectedReminderTime!);
+                              final jalali = shamsi.Jalali.fromDateTime(
+                                  selectedReminderTime!);
                               final dateComponent =
                                   '${jalali.year}/${jalali.month.toString().padLeft(2, '0')}/${jalali.day.toString().padLeft(2, '0')}';
                               final timeComponent = DateFormat('HH:mm')
@@ -775,25 +774,26 @@ class PlannerScreen extends StatelessWidget {
                               return '$dateComponent – $timeComponent';
                             }()),
                       onPressed: () async {
-                        final date = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
-                            locale: const Locale('fa', 'IR'));
-                        if (date == null) return;
+                        Jalali? picked = await showPersianDatePicker(
+                          context: context,
+                          initialDate: Jalali.now(),
+                          firstDate: Jalali.now(),
+                          // [FIX]: The .add() method for Jalali takes named parameters, not a Duration object.
+                          lastDate: Jalali.now().add(days: 365),
+                        );
+
+                        if (picked == null) return;
+
                         final time = await showTimePicker(
                             context: context,
                             initialTime:
                                 TimeOfDay.fromDateTime(DateTime.now()));
                         if (time == null) return;
-                        setDialogState(() => selectedReminderTime = DateTime(
-                            date.year,
-                            date.month,
-                            date.day,
-                            time.hour,
-                            time.minute));
+
+                        setDialogState(() => selectedReminderTime = picked
+                            .toDateTime()
+                            .add(Duration(
+                                hours: time.hour, minutes: time.minute)));
                       },
                     )
                   ],
@@ -1199,14 +1199,14 @@ class StatsScreen extends StatelessWidget {
                 lastDay: DateTime.now().add(const Duration(days: 365)),
                 calendarBuilders: CalendarBuilders(
                   headerTitleBuilder: (context, day) {
-                    final jalali = Jalali.fromDateTime(day);
+                    final jalali = shamsi.Jalali.fromDateTime(day);
                     return Center(
                         child: Text(
                             '${jalali.formatter.mN} ${jalali.formatter.yyyy}',
                             style: Theme.of(context).textTheme.bodyLarge));
                   },
                   defaultBuilder: (context, day, focusedDay) {
-                    final jalaliDay = Jalali.fromDateTime(day).day;
+                    final jalaliDay = shamsi.Jalali.fromDateTime(day).day;
                     final dayHistory =
                         history.where((h) => isSameDay(h.date, day)).toList();
                     if (dayHistory.isNotEmpty) {
@@ -1223,7 +1223,7 @@ class StatsScreen extends StatelessWidget {
                     return Center(child: Text(jalaliDay.toString()));
                   },
                   todayBuilder: (context, day, focusedDay) {
-                    final jalaliDay = Jalali.fromDateTime(day).day;
+                    final jalaliDay = shamsi.Jalali.fromDateTime(day).day;
                     final dayHistory =
                         history.where((h) => isSameDay(h.date, day)).toList();
                     return Container(
@@ -1243,7 +1243,7 @@ class StatsScreen extends StatelessWidget {
                     );
                   },
                   outsideBuilder: (context, day, focusedDay) {
-                    final jalaliDay = Jalali.fromDateTime(day).day;
+                    final jalaliDay = shamsi.Jalali.fromDateTime(day).day;
                     return Center(
                         child: Text(jalaliDay.toString(),
                             style: const TextStyle(color: Colors.grey)));
