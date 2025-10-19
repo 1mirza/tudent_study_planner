@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'package:intl/intl.dart' hide TextDirection;
 import 'dart:async';
 import 'dart:convert';
@@ -17,7 +18,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:shamsi_date/shamsi_date.dart' as shamsi;
-// [FIX]: Hid 'isSameDay' from this import to resolve name collision with 'table_calendar'.
+// Hid 'isSameDay' from this import to resolve name collision with 'table_calendar'.
 import 'package:persian_datetime_picker/persian_datetime_picker.dart'
     hide isSameDay;
 
@@ -157,7 +158,7 @@ class PomodoroApp extends StatelessWidget {
               fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.black),
         ),
       ),
-      // [FIX]: Removed 'const' because DefaultPersianLocalization.delegate is not a constant.
+      // [FIX]: Replaced deprecated 'DefaultPersianLocalization' with 'GlobalPersianDateLocalization'.
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -774,26 +775,37 @@ class PlannerScreen extends StatelessWidget {
                               return '$dateComponent – $timeComponent';
                             }()),
                       onPressed: () async {
-                        Jalali? picked = await showPersianDatePicker(
-                          context: context,
-                          initialDate: Jalali.now(),
-                          firstDate: Jalali.now(),
-                          // [FIX]: The .add() method for Jalali takes named parameters, not a Duration object.
-                          lastDate: Jalali.now().add(days: 365),
-                        );
-
-                        if (picked == null) return;
-
-                        final time = await showTimePicker(
+                        try {
+                          Jalali? picked = await showPersianDatePicker(
                             context: context,
-                            initialTime:
-                                TimeOfDay.fromDateTime(DateTime.now()));
-                        if (time == null) return;
+                            initialDate: Jalali.now(),
+                            firstDate: Jalali.now(),
+                            lastDate: Jalali(Jalali.now().year + 1,
+                                Jalali.now().month, Jalali.now().day),
+                          );
 
-                        setDialogState(() => selectedReminderTime = picked
-                            .toDateTime()
-                            .add(Duration(
-                                hours: time.hour, minutes: time.minute)));
+                          if (picked == null) return;
+
+                          final time = await showTimePicker(
+                              context: context,
+                              initialTime:
+                                  TimeOfDay.fromDateTime(DateTime.now()));
+                          if (time == null) return;
+
+                          setDialogState(() => selectedReminderTime = picked
+                              .toDateTime()
+                              .add(Duration(
+                                  hours: time.hour, minutes: time.minute)));
+                        } catch (e) {
+                          print("Error opening date picker: $e");
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'خطایی در باز کردن انتخابگر تاریخ رخ داد.',
+                                        textDirection: TextDirection.rtl)));
+                          }
+                        }
                       },
                     )
                   ],

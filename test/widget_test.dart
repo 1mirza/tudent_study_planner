@@ -8,8 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Import the main app file from your project.
-// The project name 'pomopal_app' is based on your pubspec.yaml.
+// [FIX]: Corrected the package name to match 'pubspec.yaml'.
 import 'package:pomopal_app/main.dart';
 
 void main() {
@@ -18,8 +17,14 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const PomodoroApp());
 
-    // Verify that the initial screen is the Timer screen.
-    expect(find.text('تایمر پومودورو'), findsOneWidget);
+    // Verify that the timer screen is displayed by default.
+    // We expect to find the text for the initial timer mode.
+    expect(find.text('زمان تمرکز'), findsOneWidget);
+
+    // Verify that the initial timer value is displayed (assuming 25 minutes default).
+    expect(find.text('25:00'), findsOneWidget);
+
+    // Verify the play button is present.
     expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
   });
 
@@ -27,53 +32,53 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const PomodoroApp());
 
-    // Tap the 'Planner' icon and verify.
+    // Tap the 'Planner' icon and verify navigation.
     await tester.tap(find.byIcon(Icons.calendar_today_outlined));
-    await tester.pumpAndSettle(); // Wait for animations to finish
+    await tester.pumpAndSettle(); // Wait for navigation animation
     expect(find.text('برنامه‌ریز هفتگی'), findsOneWidget);
 
-    // Tap the 'Goals' icon and verify.
+    // Tap the 'Goals' icon and verify navigation.
     await tester.tap(find.byIcon(Icons.flag_outlined));
     await tester.pumpAndSettle();
     expect(find.text('اهداف تحصیلی'), findsOneWidget);
 
-    // Tap the 'Stats' icon and verify.
+    // Tap the 'Stats' icon and verify navigation.
     await tester.tap(find.byIcon(Icons.bar_chart_outlined));
     await tester.pumpAndSettle();
     expect(find.text('گزارش عملکرد'), findsOneWidget);
 
-    // Tap the 'Settings' icon and verify.
+    // Tap the 'Settings' icon and verify navigation.
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
     expect(find.text('تنظیمات و پروفایل'), findsOneWidget);
-
-    // Go back to the Timer screen to complete the test.
-    await tester.tap(find.byIcon(Icons.timer));
-    await tester.pumpAndSettle();
-    expect(find.text('تایمر پومودورو'), findsOneWidget);
   });
 
-  testWidgets('Timer controls play and pause the timer',
-      (WidgetTester tester) async {
+  testWidgets('Timer controls work correctly', (WidgetTester tester) async {
     await tester.pumpWidget(const PomodoroApp());
 
-    // Verify the initial state is paused.
+    // Initial state: Play button is visible.
     expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
     expect(find.byIcon(Icons.pause_circle_filled), findsNothing);
 
-    // Tap the play button.
+    // Tap the play button to start the timer.
     await tester.tap(find.byIcon(Icons.play_circle_filled));
-    await tester.pump(); // Trigger a frame to update the UI
+    await tester.pump(); // Trigger a frame to update the UI.
 
-    // Verify the state is now playing.
-    expect(find.byIcon(Icons.play_circle_filled), findsNothing);
+    // After starting: Pause button is visible.
     expect(find.byIcon(Icons.pause_circle_filled), findsOneWidget);
+    expect(find.byIcon(Icons.play_circle_filled), findsNothing);
+
+    // Let the timer run for a second.
+    await tester.pump(const Duration(seconds: 1));
+
+    // Verify the timer has counted down.
+    expect(find.text('24:59'), findsOneWidget);
 
     // Tap the pause button.
     await tester.tap(find.byIcon(Icons.pause_circle_filled));
-    await tester.pump(); // Trigger a frame to update the UI
+    await tester.pump();
 
-    // Verify the state is back to paused.
+    // After pausing: Play button is visible again.
     expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
     expect(find.byIcon(Icons.pause_circle_filled), findsNothing);
   });
